@@ -1,0 +1,98 @@
+{% extends "currency/base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4 text-center">Курс {{ base }} → {{ target }}</h2>
+
+  <form method="get" class="row g-3 mb-4">
+    <div class="col-md-3">
+        <label for="base" class="form-label">Базовая валюта</label>
+        <select name="base" id="base" class="form-select">
+            {% for currency in currencies %}
+                <option value="{{ currency }}" {% if currency == base %}selected{% endif %}>{{ currency }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label for="target" class="form-label">Целевая валюта</label>
+        <select name="target" id="target" class="form-select">
+            {% for currency in currencies %}
+                <option value="{{ currency }}" {% if currency == target %}selected{% endif %}>{{ currency }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label for="date" class="form-label">Дата</label>
+        <input type="date" name="date" id="date" class="form-control" value="{{ date }}">
+    </div>
+      <div class="col-md-3">
+    <label for="period" class="form-label">Период</label>
+    <select name="period" id="period" class="form-select">
+        <option value="7" {% if period == "7" %}selected{% endif %}>7 дней</option>
+        <option value="30" {% if period == "30" %}selected{% endif %}>30 дней</option>
+        <option value="90" {% if period == "90" %}selected{% endif %}>90 дней</option>
+    </select>
+</div>
+    <div class="col-md-3 d-flex align-items-end">
+        <button type="submit" class="btn btn-success w-100">Получить курс</button>
+    </div>
+  </form>
+
+  {% if rate %}
+    <div class="alert alert-success text-center">
+      <strong>Курс {{ base }} → {{ target }} на {{ date }}:</strong> {{ rate }}
+    </div>
+  {% else %}
+    <div class="alert alert-warning text-center">
+      Курс не найден. Проверьте коды валют или дату.
+    </div>
+  {% endif %}
+
+  {% if values %}
+    <hr>
+    <h4 class="text-center mt-4">Изменение курса за последний месяц</h4>
+    <canvas id="exchangeChart" height="100"></canvas>
+  {% endif %}
+</div>
+
+
+{% if values %}
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('exchangeChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: {{ labels|safe }},
+        datasets: [{
+          label: 'Курс {{ base }} → {{ target }}',
+          data: {{ values|safe }},
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Дата'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Курс'
+            },
+            beginAtZero: false
+          }
+        }
+      }
+    });
+  </script>
+{% endif %}
+{% endblock %}
